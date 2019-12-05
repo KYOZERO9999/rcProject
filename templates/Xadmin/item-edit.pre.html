@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title>商品修改</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="{% static "css/font.css" %}">
+    <link rel="stylesheet" href="{% static "css/xadmin.css" %}">
+    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/2.2.4/jquery-2.2.4.min.js"></script>
+    <script src="{% static 'lib/layui/layui.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/xadmin.js' %}"></script>
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<form id="loginform" method="post" class="layui-form" action="itemEditOK">
+    {% csrf_token %}
+
+    <div class="layui-fluid">
+        <div style="height:100px;width: auto;">
+            <input type="file" id="cover1" name="img1" style="display: none">
+            <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini" >选择图片1</span>
+            <img id="smallCover1" style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px" alt="点击上传图片" src="{% static 'upload/itemimg/' %}{{ img1Url }}"/>
+        </div>
+        <div style="height:100px;width: auto;margin-top: 15px">
+        <div style="height:100px;width: auto;">
+            <input type="file" id="cover2" name="img2" style="display: none">
+            <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini" >选择图片2</span>
+            <img id="smallCover2" style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px" alt="点击上传图片" src="{% static 'upload/itemimg/' %}{{ img2Url }}"/>
+        </div>
+        </div>
+        <div style="height:100px;width: auto;margin-top: 15px">
+            <input type="file" id="cover3" name="img3" style="display: none">
+            <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini" >选择图片3</span>
+            <img id="smallCover3" style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px" alt="点击上传图片" src="{% static 'upload/itemimg/' %}{{ img3Url }}"/>
+        </div>
+
+        <div style="margin-top: 30px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">商品名称</span>
+            <input style="float: left;width: 200px;height:40px;margin-left: 30px;" type="text" id="name"
+                   name="name" required="" lay-verify="required" autocomplete="off" class="layui-input" value="{{ item.name }}">
+        </div>
+
+        <div style="margin-top: 100px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">原价</span>
+            <input placeholder="请点击选择" style="float: left;width: 200px;height:40px;margin-left: 30px;" value="{{ item.price }}" type="text"
+                   id="price" name="price" required="" lay-verify="required" autocomplete="off" class="layui-input" >
+        </div>
+        <div style="margin-top: 170px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">现价</span>
+            <input placeholder="请点击选择"  style="float: left;width: 200px;height:40px;margin-left: 30px;" value="{{ item.realprice }}" type="text"
+                   id="realprice" name="realprice" required="" lay-verify="required" autocomplete="off" class="layui-input"  >
+        </div>
+        <div style="margin-top: 240px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">提交</span>
+        </div>
+    </div>
+</form>
+</body>
+</html>

@@ -1,0 +1,489 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title>添加店铺</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="{% static "css/font.css" %}">
+    <link rel="stylesheet" href="{% static "css/xadmin.css" %}">
+    <link rel="stylesheet" href="{% static "css/theme49.min.css" %}">
+    <!--<link rel="stylesheet" href="./css/theme5.css"> -->
+    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/2.2.4/jquery-2.2.4.min.js"></script>
+    <script src="{% static 'lib/layui/layui.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/xadmin.js' %}"></script>
+    <!--[if lt IE 9]>
+          <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+          <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    <script charset="utf-8" src="https://map.qq.com/api/js?v=2.exp&key=6VBBZ-S2OW4-KJQU3-DXLV7-FV64J-75BDP"></script>
+    <style type="text/css">
+        .formInnerBlock {
+            width: auto;
+            position: relative;
+            top: 50px;
+            height: 100px;
+        }
+
+        select {
+            display: block;
+            height: 40px;
+            width: 240px;
+            font-size: 15px
+        }
+
+        form {
+            position: relative;
+            left: 10px;
+        }
+
+        #container {
+            display: none;
+            position: absolute;
+            left: 470px;
+            top: 240px;
+            width: 600px;
+            height: 600px;
+            font: 12px/16px Verdana, Helvetica, Arial, sans-serif;
+        }
+    </style>
+</head>
+<body style="position: relative" onload="init()">
+<form method="POST" class="layui-form" action="/qypt/shopAddOK" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="text" name="admintel" style="display: none" value="{{ admintel }}">
+    <div class="formInnerBlock" style="height: 150px;">
+        <input type="file" required lay-verify="requiredimg" id="cover" name="headimg" style="display: none">
+        <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">选择图片</span>
+        <img id="smallCover"
+             style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px"
+             alt="点击上传图片" src="{% static 'images/greyspace.jpg' %}"/>
+    </div>
+    <div class="formInnerBlock" style="top:50px">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">商户名称</span>
+        <input style="float: left;width: 240px;height:40px;margin-left: 30px;" type="text" name="name" required
+               lay-verify="required" autocomplete="off" class="layui-input">
+    </div>
+    <div class="formInnerBlock" style="top: 50px;">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">商户简介</span>
+        <input style="float: left;width: 240px;height:40px;margin-left: 30px;" type="text" name="info" required
+               lay-verify="required" autocomplete="off" class="layui-input">
+    </div>
+    <div class="formInnerBlock">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">主类选择</span>
+        <select lay-ignore style="float: left;margin-left: 30px" id="shop_type2" name="shop_type2" onChange="change()">
+        {% spaceless %}
+            {% for item in shopType2 %}
+                {% if forloop.first %}
+                    <option value="{{ item.id }}" selected="selected">{{ item.name }}</option>
+                {% else %}
+                    <option value="{{ item.id }}">{{ item.name }}</option>
+                {% endif %}
+            {% endfor %}
+        {% endspaceless %}
+        </select>
+    </div>
+    <div class="formInnerBlock">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">副类选择</span>
+        <select lay-ignore style="float: left;margin-left: 30px;" id="shop_type3" name="shop_type3">
+            {% for item in shopType3 %}
+                {% if item.shop_type2_id == 1 %}
+                    <option value="{{ item.id }}">{{ item.name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+    <div class="formInnerBlock">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">地址</span>
+        <input placeholder="请点击选择" style="float: left;width: 240px;height:40px;margin-left: 30px;" type="text" id="addr"
+               name="addr" required lay-verify="required" autocomplete="off" class="layui-input" readonly="readonly"
+               onclick="showMap()">
+        <input type="text" id="latInput" name="lat" style="display: none">
+        <input type="text" id="lngInput" name="lng" style="display: none">
+    </div>
+    <div class="formInnerBlock">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">电话1</span>
+        <input placeholder="请输入电话" style="float: left;width: 240px;height:40px;margin-left: 30px;" type="text"
+               name="tel1" required lay-verify="required" autocomplete="off" class="layui-input">
+    </div>
+    <div class="formInnerBlock">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">电话2</span>
+        <input placeholder="请输入电话" style="float: left;width: 240px;height:40px;margin-left: 30px;" type="text"
+               name="tel2" autocomplete="off" class="layui-input">
+    </div>
+    <div class="formInnerBlock">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"
+              class="layui-btn layui-btn-normal layui-btn-mini">电话3</span>
+        <input placeholder="请输入电话" style="float: left;width: 240px;height:40px;margin-left: 30px;" type="text"
+               name="tel3" autocomplete="off" class="layui-input">
+    </div>
+    <div class="layui-input-block" style="margin-left: 0;top: 50px;">
+        <button style="height:40px;width: 95px;line-height:40px;color: #FFF;border: none;background:#1E9FFF " lay-submit
+                lay-filter="formDemo">提交
+        </button>
+    </div>
+</form>
+
+<div id="container"></div>
+</body>
+<script>
+    //定义地图，标记数组
+    // Lat纬度,lng经度
+    var latVal, lngVal;
+    var map, markersArray = [];
+    var init = function () {
+        //设置地图中心点
+        var center = new qq.maps.LatLng(45.748128, 126.680302);
+        map = new qq.maps.Map(document.getElementById('container'), {
+            center: center,
+            zoom: 13
+        });
+        //添加dom监听事件
+        qq.maps.event.addDomListener(map, 'click', function (event) {
+            deleteOverlays();
+            addMarker(event.latLng);
+            latVal = event.latLng.getLat()
+            lngVal = event.latLng.getLng()
+            console.log('您点击的位置为: [' + latVal + ', ' + lngVal + ']');
+            {#document.getElementById('addr').value = "位置已选择";#}
+            document.getElementById('latInput').value = latVal;
+            document.getElementById('lngInput').value = lngVal;
+            getAddr(latVal,lngVal)
+        });
+    }
+
+    //添加标记
+    function addMarker(location) {
+        var marker = new qq.maps.Marker({
+            position: location,
+            map: map
+        });
+        markersArray.push(marker);
+    }
+
+    //删除覆盖物
+    function deleteOverlays() {
+        if (markersArray) {
+            for (i in markersArray) {
+                markersArray[i].setMap(null);
+            }
+            markersArray.length = 0;
+        }
+    }
+
+    //通过经纬度反查地址
+    function getAddr(lat, lng) {
+        $.post("/qypt/getShopAddr", {lat: lat, lng: lng, csrfmiddlewaretoken: '{{ csrf_token }}'},
+            function (data) {
+                var info = JSON.parse(data);
+                var address = info.result.address
+                document.getElementById('addr').value = address;
+                console.log()
+            });
+    }
+
+
+//图片上传
+    var size
+    $('#smallCover').on('click', function () {
+        $("#cover").click();
+    })
+
+    $('#cover').on('change', function () {
+        var filePath = $(this)[0].files[0].name       //获取到input的value，里面是文件的路径
+        fileFormat = filePath.split('.')[1].toLowerCase()
+        src = window.URL.createObjectURL(this.files[0]) //转成可以在本地预览的格式
+
+        // 检查是否是图片
+        if (!fileFormat.match("jpg")) {
+            alert('上传错误,文件格式必须为：jpg')
+            return
+        }
+        size = $('#cover')[0].files[0].size;
+        // 检查图片大小
+        if (size > 214808) {
+            alert('请上传小于200k的图片')
+            return
+        }
+        {#console.log(size)#}
+
+        $('#smallCover').attr('src', src);
+        console.log($("#cover").val());
+    });
+
+
+    //Demo
+    layui.use('form', function () {
+        var form = layui.form;
+        //监听提交needpic
+        form.verify({
+            requiredimg: function (value) {
+                if ($('#cover').val() == "")
+                    return '请上传图片';
+            }
+        });
+        //监听提交
+       // form.on('submit(formDemo)', function (data) {
+       //     layer.msg(JSON.stringify(data.field));
+        //    return false;
+        //});
+    });
+
+    //二级联动分类select
+    function change() {
+        console.log(1);
+        var x = document.getElementById("shop_type2");
+        var y = document.getElementById("shop_type3");
+        y.options.length = 0; // 清除subtype下拉框的所有内容
+        switch (x.selectedIndex) {
+            case 0:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 1%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                break;
+            case 1:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 2%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+            case 2:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 3%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+            case 3:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 4%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+            case 4:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 5%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+            case 5:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 6%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+            case 6:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 7%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 7:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 8%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 8:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 9%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 9:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 10%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 10:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 11%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+              case 11:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 12%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 12:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 13%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 13:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 14%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 14:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 15%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 15:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 16%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 16:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 17%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 17:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 18%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 18:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 19%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 19:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 20%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 20:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 21%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 21:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 22%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 22:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 23%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 23:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 24%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 24:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 25%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 25:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 26%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 26:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 27%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 27:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 28%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+              case 28:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 29%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 29:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 30%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 30:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 31%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 31:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 32%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+             case 32:
+                {% spaceless %} {% for item in shopType3 %}
+                    {% if item.shop_type2_id == 33%}
+                        y.options.add(new Option("{{ item.name }}", "{{ item.id }}"));
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+                 break;
+        }
+
+    }
+
+    function showMap() {
+        document.getElementById("container").style.display = "block";
+    }
+</script>
+</html>

@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title>商品编辑</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="{% static "css/font.css" %}">
+    <link rel="stylesheet" href="{% static "css/xadmin.css" %}">
+    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/2.2.4/jquery-2.2.4.min.js"></script>
+    <script src="{% static 'lib/layui/layui.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/xadmin.js' %}"></script>
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        body{
+
+        }
+        .formInnerBlock{
+            width: auto;position: relative;top:20px;height:100px;
+        }
+        select{
+            display: block;height: 40px;width:200px;font-size: 15px;
+            float: left;width: 200px;height:40px;margin-left: 30px;"
+        }
+        form{
+            position: relative;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+<form  method="POST" action="/qypt/itemEditOK" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="text" name="admintel" style="display: none" value="{{ admintel }}">
+    <input type="text" name="itemid" style="display: none" value="{{ itemid }}">
+    <input type="hidden" id="isImgChanged1" name="isImgChanged1" value="0">
+    <input type="hidden" id="isImgChanged2" name="isImgChanged2" value="0">
+    <input type="hidden" id="isImgChanged3" name="isImgChanged3" value="0">
+
+    <div class="layui-fluid">
+        <div style="height:100px;width: auto;">
+            <input type="file" id="cover1" name="img1" style="display: none">
+            <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini" >选择图片1</span>
+            <img id="smallCover1" style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px" alt="点击上传图片" src="{% static 'upload/itemimg/' %}{{ img1Url }}"/>
+        </div>
+        <div style="height:100px;width: auto;margin-top: 15px">
+        <div style="height:100px;width: auto;">
+            <input type="file" id="cover2" name="img2" style="display: none">
+            <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini" >选择图片2</span>
+            <img id="smallCover2" style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px" alt="点击上传图片" src="{% static 'upload/itemimg/' %}{{ img2Url }}"/>
+        </div>
+        </div>
+        <div style="height:100px;width: auto;margin-top: 15px">
+            <input type="file" id="cover3" name="img3" style="display: none">
+            <span style="float: left;margin-top: 30px;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini" >选择图片3</span>
+            <img id="smallCover3" style="float: left;margin-left: 30px;height:95px;width: 95px;border: 1px solid #999;text-align: center;line-height: 95px" alt="点击上传图片" src="{% static 'upload/itemimg/' %}{{ img3Url }}"/>
+        </div>
+        <div style="margin-top: 30px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">商品名称</span>
+            <input style="float: left;width: 200px;height:40px;margin-left: 30px;" type="text" id="L_repass"
+                   name="name" required="" lay-verify="required" autocomplete="off" class="layui-input"  value="{{ item.name }}">
+        </div>
+        <div style="margin-top: 100px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">原价</span>
+            <input placeholder="请输入原价" style="float: left;width: 200px;height:40px;margin-left: 30px;" type="text"
+                   id="price" name="price" required="" lay-verify="required" value="{{ item.price }}" autocomplete="off" class="layui-input">
+        </div>
+        <div style="margin-top: 170px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px"
+                  class="layui-btn layui-btn-normal layui-btn-mini">现价</span>
+            <input placeholder="请输入现价" style="float: left;width: 200px;height:40px;margin-left: 30px;" type="text"
+                   id="realprice" name="realprice" required="" value="{{ item.realprice }}" lay-verify="required" autocomplete="off" class="layui-input">
+        </div>
+        <div class="formInnerBlock" style="margin-top: 220px">
+        <span style="float: left;height:40px;width: 95px;line-height:40px"class="layui-btn layui-btn-normal layui-btn-mini">上架店铺</span>
+            <select name="shopid">
+                {% for shop in shoplist %}
+                    {% if shop.id == shopselectid %}
+                        <option value="{{ shop.id }}" selected="selected">{{ shop.name }}</option>
+                    {% else %}
+                        <option value="{{ shop.id }}">{{ shop.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div onclick="submitThisForm()" style="margin-top: 100px">
+            <span style="float: left;height:40px;width: 95px;line-height:40px" class="layui-btn layui-btn-normal layui-btn-mini">提交</span>
+        </div>
+    </div>
+</form>
+</body>
+<script>
+    $('#smallCover1').on('click',function() {
+        $("#cover1").click();
+    })
+    $('#smallCover2').on('click',function() {
+        $("#cover2").click();
+    })
+    $('#smallCover3').on('click',function() {
+        $("#cover3").click();
+    })
+    $('#cover1').on('change', function () {
+        var filePath = $(this)[0].files[0].name       //获取到input的value，里面是文件的路径
+        fileFormat = filePath.split('.')[1].toLowerCase()
+        src = window.URL.createObjectURL(this.files[0]) //转成可以在本地预览的格式
+
+        // 检查是否是图片
+        if (!fileFormat.match(/png|jpg|jpeg/)) {
+            alert('上传错误,文件格式必须为：png/jpg/jpeg')
+            return
+        }
+
+        $('#smallCover1').attr('src', src);
+        document.getElementById('isImgChanged1').value=1;
+        console.log($("#cover1").val());
+    });
+
+    $('#cover2').on('change', function () {
+        var filePath = $(this)[0].files[0].name       //获取到input的value，里面是文件的路径
+        fileFormat = filePath.split('.')[1].toLowerCase()
+        src = window.URL.createObjectURL(this.files[0]) //转成可以在本地预览的格式
+
+        // 检查是否是图片
+        if (!fileFormat.match(/png|jpg|jpeg/)) {
+            alert('上传错误,文件格式必须为：png/jpg/jpeg')
+            return
+        }
+
+        $('#smallCover2').attr('src', src);
+        document.getElementById('isImgChanged2').value=1;
+        console.log($("#cover2").val());
+    });
+
+    $('#cover3').on('change', function () {
+        var filePath = $(this)[0].files[0].name       //获取到input的value，里面是文件的路径
+        fileFormat = filePath.split('.')[1].toLowerCase()
+        src = window.URL.createObjectURL(this.files[0]) //转成可以在本地预览的格式
+
+        // 检查是否是图片
+        if (!fileFormat.match(/png|jpg|jpeg/)) {
+            alert('上传错误,文件格式必须为：png/jpg/jpeg')
+            return
+        }
+
+        $('#smallCover3').attr('src', src);
+        document.getElementById('isImgChanged3').value=1;
+        console.log($("#cover3").val());
+    });
+    function submitThisForm() {
+        $("form").submit();
+    }
+</script>
+</html>

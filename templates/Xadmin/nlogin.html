@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> - 登录</title>
+  <meta name="keywords" content="">
+  <meta name="description" content="">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <script src="http://lib.sinaapp.com/js/jquery/2.2.4/jquery-2.2.4.min.js"></script>
+</head>
+<body class="gray-bg">
+  <div class="middle-box text-center loginscreen animated fadeInDown" >
+    <div style="margin-top: 40px">
+      <h3>欢迎使用 AutoOps</h3>
+        {% csrf_token %}
+        <div class="form-group" >
+          <input type="text" name="user" value="" class="form-control user_obj" placeholder="用户名" required="" autocomplete="off">
+        </div>
+        <span style="display: block;margin-bottom: 10px;color:red" id="user_error"></span>
+        <div class="form-group">
+          <input type="password" name="pwd" value="" class="form-control pwd_obj" placeholder="密码" required="" autocomplete="off">
+        </div>
+        <span style="display: block;margin-bottom: 10px;color:red" id="pwd_error"></span>
+        <button type="submit" class="btn btn-info block full-width m-b btn_obj">登 录</button>
+        记住密码 <input type="checkbox" style="margin: 0">
+    </div>
+  </div>
+  <script>
+    $(".btn_obj").click(function () {
+      var user = $(".user_obj").val();
+      var pwd = $(".pwd_obj").val();
+      $.ajaxSetup({headers: {"X-CSRFToken": '{{ csrf_token }}'}});
+      $.ajax({
+        "url": "/qypt/nlogin",
+        "type": "post",
+        "data": {"user":user,"pwd":pwd},
+        success: function (data) {
+          var obj = JSON.parse(data);
+          if (obj.status) {
+            $(".user_obj").css("border-color","");
+            $("#user_error").text("");
+            $(".pwd_obj").css("border-color","");
+            $("#pwd_error").text("");
+             window.location.href = '/assets/assets_list.html';
+          }
+          else {
+            if (obj.error.user_error != "") {
+              $(".user_obj").css("border-color","red");
+              $("#user_error").text(obj.error.user_error);
+            }else {
+              $(".user_obj").css("border-color","");
+              $("#user_error").text("");
+            }
+            if (obj.error.pwd_error != "") {
+              $(".pwd_obj").css("border-color","red");
+              $("#pwd_error").text(obj.error.pwd_error);
+            }else {
+              $(".pwd_obj").css("border-color","");
+              $("#pwd_error").text("");
+            }
+            if (obj.error.login_error != "") {
+              alert("登录失败",obj.error.login_error, "", {type: 'error'})
+            }
+          }
+        }
+      })
+    })
+  </script>
+</body>
+</html>

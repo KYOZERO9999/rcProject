@@ -1,0 +1,17 @@
+Not Found: /
+[22/Aug/2019 10:33:44] "GET / HTTP/1.1" 404 2030
+Not Found: /favicon.ico
+[22/Aug/2019 10:33:44] "GET /favicon.ico HTTP/1.1" 404 2081
+[22/Aug/2019 10:34:05] "GET /admin HTTP/1.1" 301 0
+[22/Aug/2019 10:34:05] "GET /admin/ HTTP/1.1" 302 0
+[22/Aug/2019 10:34:06] "GET /admin/login/?next=/admin/ HTTP/1.1" 200 1819
+[22/Aug/2019 10:34:06] "GET /static/admin/css/base.css HTTP/1.1" 200 16225
+[22/Aug/2019 10:34:06] "GET /static/admin/css/login.css HTTP/1.1" 200 1203
+[22/Aug/2019 10:34:06] "GET /static/admin/css/responsive.css HTTP/1.1" 200 17976
+[22/Aug/2019 10:34:06] "GET /static/admin/css/fonts.css HTTP/1.1" 304 0
+[22/Aug/2019 10:34:06] "GET /static/admin/fonts/Roboto-Light-webfont.woff HTTP/1.1" 304 0
+[22/Aug/2019 10:34:06] "GET /static/admin/fonts/Roboto-Regular-webfont.woff HTTP/1.1" 304 0
+[22/Aug/2019 10:34:12] "GET /polls HTTP/1.1" 301 0
+[22/Aug/2019 10:34:13] "GET /polls/ HTTP/1.1" 200 40
+[22/Aug/2019 10:34:31] "GET /polls/ HTTP/1.1" 200 40
+[22/Aug/2019 10:34:32] "GET /polls/ HTTP/1.1" 200 40

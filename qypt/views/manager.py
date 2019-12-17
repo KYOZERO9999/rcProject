@@ -16,7 +16,7 @@ def managerList(request):
     return render(request, templateUrl, param1)
 
 
-# 添加收银员
+# 添加收银员1
 def managerAdd(request):
     if not isLogin(request):
         return redirect('/qypt/login')

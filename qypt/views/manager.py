@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from qypt.models import manager
-
-import re
+from django.core.cache import cache
+import requests, re, json
 
 # 收银员列表
 def managerList(request):
@@ -13,6 +13,7 @@ def managerList(request):
     managerList = manager.objects.filter(admintel=admintel)
     param1 = {admintel: session['tel'], "managerList": managerList}
     templateUrl = 'Xadmin/manager-list.html'
+    tt = 1
     return render(request, templateUrl, param1)
 
 
@@ -34,6 +35,25 @@ def managerAddOK(request):
     tel = request.POST.get('tel')
     newmanager = manager(name=name, tel=tel, pwd=pwd, admintel=admintel, is_active=1)
     newmanager.save()
+    rc_id = newmanager.id
+    # return HttpResponse(add_data(getToken()))
+    query='''
+    db.collection("qypt_manager").add({
+        data:{
+            admintel:%s,
+            is_active:1,
+            name:%s,
+            pwd:%s,
+            tel:%s,
+            rc_id:%d
+        }
+    })
+    ''' % (admintel,name,pwd,tel,rc_id)
+    data={
+        "env":'qypt-test-p2p0k',
+        "query":query
+    }
+    wxCloundDbAddData(getToken(),data)
     return redirect('/qypt/closeSavePage')
 
 
@@ -107,9 +127,27 @@ def isLogin(request):
         return False
         # return render(request, 'Xadmin/login.html')
 
+# 获取小程序云getToken函数
+def getToken():
+    key = 'yun_access_token'
+    if cache.has_key(key):
+        token = cache.get(key)
+    else:
+        predata = {'grant_type': 'client_credential', 'appid': 'wx2bcbe0e03dd17173',
+                   'secret': 'fbeab82fde53ccc7ee7efcd3d2811284'}
+        responseInfo = requests.get("https://api.weixin.qq.com/cgi-bin/token", params=predata)
+        cache.set(key, responseInfo.json()['access_token'], responseInfo.json()['expires_in'] - 200)
+        token = responseInfo.json()['access_token']
+    return token
 
 
-
+# 云数据库新增数据
+def wxCloundDbAddData(accessToken,data):
+    # POST https://api.weixin.qq.com/tcb/databaseadd?access_token=ACCESS_TOKEN
+    WECHAT_URL = 'https://api.weixin.qq.com/'
+    url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,accessToken)
+    response  = requests.post(url,data=json.dumps(data))
+    print('新增数据：'+response.text)
 
 
 

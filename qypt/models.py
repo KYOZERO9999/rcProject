@@ -10,7 +10,6 @@ class manager(models.Model):
     tel = models.CharField(max_length=11)
     name = models.CharField(max_length=30)
     pwd = models.CharField(max_length=255)
-    status = models.CharField(max_length=255)
     admintel = models.CharField(max_length=11)
     is_active = models.IntegerField()
 

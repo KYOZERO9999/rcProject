@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
+from django.core.cache import cache
 from qypt.models import admin
 from qypt.models import manager
 from django.contrib.auth.hashers import make_password, check_password
-import re
+import requests, re, json
 
 
 # 登陆
@@ -213,9 +214,6 @@ def validateTel(tel):
         return False
 
 
-
-
-
 def isLogin(request):
     # 拿到cookie对应的随机码，来查找session里的is_login字段是否True，如果通过则表示通过
     if request.session.get('is_login', None):
@@ -223,3 +221,19 @@ def isLogin(request):
     else:
         return False
         # return render(request, 'Xadmin/login.html')
+
+
+# 获取小程序云access_token函数
+def getToken():
+    key = 'yun_access_token'
+    if cache.has_key(key):
+        token = cache.get(key)
+    else:
+        predata = {'grant_type': 'client_credential', 'appid': 'wx2bcbe0e03dd17173',
+                   'secret': 'fbeab82fde53ccc7ee7efcd3d2811284'}
+        responseInfo = requests.get("https://api.weixin.qq.com/cgi-bin/token", params=predata)
+        cache.set(key, responseInfo.json()['access_token'], responseInfo.json()['expires_in'] - 200)
+        token = responseInfo.json()['access_token']
+    return token
+
+

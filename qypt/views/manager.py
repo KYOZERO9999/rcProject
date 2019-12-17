@@ -13,7 +13,6 @@ def managerList(request):
     managerList = manager.objects.filter(admintel=admintel)
     param1 = {admintel: session['tel'], "managerList": managerList}
     templateUrl = 'Xadmin/manager-list.html'
-    tt = 1
     return render(request, templateUrl, param1)
 
 

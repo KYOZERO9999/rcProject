@@ -81,14 +81,14 @@ def managerEditOK(request):
     manager.objects.filter(id=id).update(name=name, tel=tel, pwd=pwd)
 
     query='''
-    db.collection("qypt_manager").doc(%d).update({
+    db.collection("qypt_manager").doc(%s).update({
         data:{
             name:%s,
             pwd:%s,
             tel:%s
         }
     })
-    ''' % (int(cloud_id),name,pwd,tel)
+    ''' % (cloud_id,name,pwd,tel)
     operation={
         "env":'qypt-test-p2p0k',
         "query":query
@@ -99,8 +99,11 @@ def managerEditOK(request):
 
 def reverseManagerStatus(request):
     managerid = request.POST.get('managerid')
-    print(managerid)
+    # print(managerid)
     managerobj = manager.objects.get(id=managerid)
+    cloud_id = managerobj.cloud_id
+    print('cloud_id')
+    print(cloud_id)
     flag = managerobj.is_active
     if flag == 1:
         val = 0
@@ -109,6 +112,21 @@ def reverseManagerStatus(request):
     # val = 0 if (flag == 1) else 1
     managerobj.is_active = val
     managerobj.save()
+
+    query='''
+    db.collection("qypt_manager").doc('%s').update({
+        data:{
+            is_active:%d
+        }
+    })
+    ''' % (cloud_id, val)
+    print(query)
+    # query = '''{env: % s, query: db.collection( % s).doc( % s).update({data: {is_active: % d}})}'''% ('qypt-test-p2p0k','qypt_manager',cloud_id, val)
+    operation={
+        "env":'qypt-test-p2p0k',
+        "query":query
+    }
+    wxCloundDbUpdateData(getToken(), operation)
 
     return HttpResponse(1)
 

@@ -48,11 +48,12 @@ def managerAddOK(request):
         }
     })
     ''' % (admintel,name,pwd,tel,rc_id)
-    data={
+    operation = {
         "env":'qypt-test-p2p0k',
         "query":query
     }
-    wxCloundDbAddData(getToken(),data)
+    wxCloundDbAddData(getToken(),operation)
+
     return redirect('/qypt/closeSavePage')
 
 
@@ -70,13 +71,27 @@ def managerEdit(request):
 def managerEditOK(request):
     if request.method == 'GET':
         return HttpResponse("参数非法")
-    id  = request.POST.get('managerid')
+    id = rc_id  = request.POST.get('managerid')
     name = request.POST.get('name')
     pwd = request.POST.get('pwd')
     tel = request.POST.get('tel')
     # 更新收银员信息
     manager.objects.filter(id=id).update(name=name, tel=tel, pwd=pwd)
 
+    query='''
+    db.collection("qypt_manager").doc.update({
+        data:{
+            name:%s,
+            pwd:%s,
+            tel:%s
+        }
+    })
+    ''' % (int(rc_id),name,pwd,tel)
+    operation={
+        "env":'qypt-test-p2p0k',
+        "query":query
+    }
+    wxCloundDbUpdateData(getToken(), operation)
     return redirect('/qypt/closeUpdatePage')
 
 
@@ -126,6 +141,7 @@ def isLogin(request):
         return False
         # return render(request, 'Xadmin/login.html')
 
+
 # 获取小程序云getToken函数
 def getToken():
     key = 'yun_access_token'
@@ -140,14 +156,24 @@ def getToken():
     return token
 
 
-# 云数据库新增数据
+
+# 云数据库代码
+# 新增数据
 def wxCloundDbAddData(accessToken,data):
     # POST https://api.weixin.qq.com/tcb/databaseadd?access_token=ACCESS_TOKEN
     WECHAT_URL = 'https://api.weixin.qq.com/'
     url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,accessToken)
     response  = requests.post(url,data=json.dumps(data))
-    print('新增数据：'+response.text)
+    print('新增数据：'+response)
 
+
+# 更新数据
+def wxCloundDbUpdateData(accessToken,data):
+    # POST https://api.weixin.qq.com/tcb/databaseupdate?access_token=ACCESS_TOKEN
+    WECHAT_URL = 'https://api.weixin.qq.com/'
+    url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,accessToken)
+    response  = requests.post(url,data=json.dumps(data))
+    print('更新数据：'+response.text)
 
 
 

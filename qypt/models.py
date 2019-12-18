@@ -12,6 +12,7 @@ class manager(models.Model):
     pwd = models.CharField(max_length=255)
     admintel = models.CharField(max_length=11)
     is_active = models.IntegerField()
+    cloud_id = models.CharField(max_length=30)
 
 class admin(models.Model):
     id = models.AutoField(primary_key=True)

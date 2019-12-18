@@ -34,7 +34,8 @@ def managerAddOK(request):
     tel = request.POST.get('tel')
     newmanager = manager(name=name, tel=tel, pwd=pwd, admintel=admintel, is_active=1)
     newmanager.save()
-    # return HttpResponse(add_data(getToken()))
+    managerid = newmanager.id
+    print("managerid"+str(managerid))
     query='''
     db.collection("qypt_manager").add({
         data:{
@@ -52,7 +53,7 @@ def managerAddOK(request):
     }
     #获取云数据库的id
     cloud_id = wxCloundDbAddData(getToken(),operation)
-
+    manager.objects.filter(id=managerid).update(cloud_id=cloud_id)
     return redirect('/qypt/closeSavePage')
 
 
@@ -70,22 +71,24 @@ def managerEdit(request):
 def managerEditOK(request):
     if request.method == 'GET':
         return HttpResponse("参数非法")
-    id = rc_id  = request.POST.get('managerid')
+    id = request.POST.get('managerid')
     name = request.POST.get('name')
     pwd = request.POST.get('pwd')
     tel = request.POST.get('tel')
+    managerobj = manager.objects.get(id=id)
+    cloud_id = managerobj.cloud_id
     # 更新收银员信息
     manager.objects.filter(id=id).update(name=name, tel=tel, pwd=pwd)
 
     query='''
-    db.collection("qypt_manager").doc.update({
+    db.collection("qypt_manager").doc(%d).update({
         data:{
             name:%s,
             pwd:%s,
             tel:%s
         }
     })
-    ''' % (int(rc_id),name,pwd,tel)
+    ''' % (int(cloud_id),name,pwd,tel)
     operation={
         "env":'qypt-test-p2p0k',
         "query":query
@@ -165,6 +168,7 @@ def wxCloundDbAddData(accessToken,data):
     response  = requests.post(url,data=json.dumps(data))
     # 将response返回的json字符串化，并转换为dict,取出云数据库的id
     # 示例数据{"errcode":0,"errmsg":"ok","id_list":["b3ba940f-4d05-4d34-8d18-7099ad58d06e"]}
+    print(json.loads(response.text)['id_list'][0])
     return(json.loads(response.text)['id_list'][0])
 
 

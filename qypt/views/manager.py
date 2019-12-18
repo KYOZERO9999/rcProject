@@ -34,7 +34,6 @@ def managerAddOK(request):
     tel = request.POST.get('tel')
     newmanager = manager(name=name, tel=tel, pwd=pwd, admintel=admintel, is_active=1)
     newmanager.save()
-    rc_id = newmanager.id
     # return HttpResponse(add_data(getToken()))
     query='''
     db.collection("qypt_manager").add({
@@ -44,15 +43,15 @@ def managerAddOK(request):
             name:%s,
             pwd:%s,
             tel:%s,
-            rc_id:%d
         }
     })
-    ''' % (admintel,name,pwd,tel,rc_id)
+    ''' % (admintel,name,pwd,tel)
     operation = {
         "env":'qypt-test-p2p0k',
         "query":query
     }
-    wxCloundDbAddData(getToken(),operation)
+    #获取云数据库的id
+    cloud_id = wxCloundDbAddData(getToken(),operation)
 
     return redirect('/qypt/closeSavePage')
 
@@ -164,7 +163,9 @@ def wxCloundDbAddData(accessToken,data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
     url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,accessToken)
     response  = requests.post(url,data=json.dumps(data))
-    print('新增数据：'+response)
+    # 将response返回的json字符串化，并转换为dict,取出云数据库的id
+    # 示例数据{"errcode":0,"errmsg":"ok","id_list":["b3ba940f-4d05-4d34-8d18-7099ad58d06e"]}
+    return(json.loads(response.text)['id_list'][0])
 
 
 # 更新数据

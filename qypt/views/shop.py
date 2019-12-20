@@ -5,14 +5,11 @@ from qypt.models import shopimg
 from qypt.models import shop_type1
 from qypt.models import shop_type2
 from qypt.models import shop_type3
+from django.core.cache import cache
 from PIL import Image
-import time
-import os
-import random
 import urllib.request
 import urllib.parse
-import ssl
-
+import requests, re, json, ssl,  random, os, time
 
 def shopList(request):
     if not isLogin(request):
@@ -82,18 +79,43 @@ def shopAddOK(request):
     newshopimg = shopimg(imgurl=imgurl)
     newshopimg.save()
     headimgid = newshopimg.id
-    print(11223)
     newshop = shop(name=name, admintel=admintel, info=info, addr=addr, tel1=tel1, tel2=tel2, tel3=tel3,
                    headimg=headimgid,
                    lng=lng, lat=lat, shop_type1=shop_type1_obj, shop_type2=shop_type2_obj, shop_type3=shop_type3_obj, is_active=1)
     newshop.save()
+    shopid = newshop.id
     currentShopImg = shopimg.objects.get(id=headimgid)
     currentShopImg.shop = newshop
     currentShopImg.save()
 
     fnCompressPic("", fullName)
-    # image_url = models.URLField()
-    # return render(request, 'Xadmin/shop-list.html')
+
+    query = '''
+    db.collection("qypt_shop").add({
+    	data:{
+    		name:%s,
+    		info:%s,
+    		addr:%s,
+    		tel1:%s,
+    		tel2:%s,
+    		tel3:%s,
+    		location: new db.Geo.Point(%s, %s),
+    		shop_type1:%s,
+    		shop_type2:%s,
+    		shop_type3:%s,
+    		randomFileName:%s,
+    		is_active:1
+    	}
+    })
+    ''' % (name, info, addr, tel1, tel2, tel3, lng, lat, 1, shop_type2_id, shop_type3_id, randomFileName)
+
+    operation = {
+        "env":'qypt-test-p2p0k',
+        "query":query
+    }
+    #获取云数据库的id
+    cloud_id = wxCloundDbAddData(getToken(),operation)
+    shop.objects.filter(id=shopid).update(cloud_id=cloud_id)
     return redirect('/qypt/closeSavePage')
 
 
@@ -259,3 +281,40 @@ def getAddr(lat,lng):
     context = ssl._create_unverified_context()
     with urllib.request.urlopen(url, context=context) as response:
         return response.read()
+
+
+# 获取小程序云getToken函数
+def getToken():
+    key = 'yun_access_token'
+    if cache.has_key(key):
+        token = cache.get(key)
+    else:
+        predata = {'grant_type': 'client_credential', 'appid': 'wx2bcbe0e03dd17173',
+                   'secret': 'fbeab82fde53ccc7ee7efcd3d2811284'}
+        responseInfo = requests.get("https://api.weixin.qq.com/cgi-bin/token", params=predata)
+        cache.set(key, responseInfo.json()['access_token'], responseInfo.json()['expires_in'] - 200)
+        token = responseInfo.json()['access_token']
+    return token
+
+
+# 云数据库代码
+# 新增数据
+def wxCloundDbAddData(accessToken,data):
+    # POST https://api.weixin.qq.com/tcb/databaseadd?access_token=ACCESS_TOKEN
+    WECHAT_URL = 'https://api.weixin.qq.com/'
+    url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,accessToken)
+    response  = requests.post(url,data=json.dumps(data))
+    # 将response返回的json字符串化，并转换为dict,取出云数据库的id
+    # 示例数据{"errcode":0,"errmsg":"ok","id_list":["b3ba940f-4d05-4d34-8d18-7099ad58d06e"]}
+    print(json.loads(response.text))
+    print(json.loads(response.text)['id_list'][0])
+    return(json.loads(response.text)['id_list'][0])
+
+
+# 更新数据
+def wxCloundDbUpdateData(accessToken,data):
+    # POST https://api.weixin.qq.com/tcb/databaseupdate?access_token=ACCESS_TOKEN
+    WECHAT_URL = 'https://api.weixin.qq.com/'
+    url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,accessToken)
+    response  = requests.post(url,data=json.dumps(data))
+    print('更新数据：'+response.text)

@@ -78,17 +78,29 @@ def managerEditOK(request):
     managerobj = manager.objects.get(id=id)
     cloud_id = managerobj.cloud_id
     # 更新收银员信息
-    manager.objects.filter(id=id).update(name=name, tel=tel, pwd=pwd)
+    if pwd=='':
+        manager.objects.filter(id=id).update(name=name, tel=tel)
+        query = '''
+        db.collection("qypt_manager").doc('%s').update({
+            data:{
+                name:%s,
+                tel:%s
+            }
+        })
+        ''' % (cloud_id, name, pwd, tel)
+    else:
+        manager.objects.filter(id=id).update(name=name, tel=tel, pwd=pwd)
+        query = '''
+        db.collection("qypt_manager").doc('%s').update({
+            data:{
+                name:%s,
+                pwd:%s,
+                tel:%s
+            }
+        })
+        ''' % (cloud_id, name, pwd, tel)
 
-    query='''
-    db.collection("qypt_manager").doc(%s).update({
-        data:{
-            name:%s,
-            pwd:%s,
-            tel:%s
-        }
-    })
-    ''' % (cloud_id,name,pwd,tel)
+    print(query)
     operation={
         "env":'qypt-test-p2p0k',
         "query":query

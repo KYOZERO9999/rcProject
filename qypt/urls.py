@@ -45,6 +45,7 @@ urlpatterns = [
     path('shopEditOK', shop.shopEditOK),
     path('getShopAddr', shop.getShopAddr),
     path('reverseShopStatus', shop.reverseShopStatus),
+    path('uptest', shop.uptest),
 
 
     path('changePwdOK', views.changePwdOK),

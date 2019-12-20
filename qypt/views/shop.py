@@ -11,6 +11,20 @@ import urllib.request
 import urllib.parse
 import requests, re, json, ssl,  random, os, time
 
+
+# 添加收银员
+def uptest(request):
+    data = {
+        "env":"qypt-test-p2p0k",
+        "path":"/static/upload/shopimg/logo/20191220061148vqiptuzb.jpg"
+    }
+    #测试结果，返回rs
+    rs = wxCloundImgUpdate(data)
+    print('token'+getToken())
+    return HttpResponse(getToken())
+
+
+
 def shopList(request):
     if not isLogin(request):
         return redirect('/qypt/login')
@@ -51,6 +65,7 @@ def shopAddOK(request):
     admintel = request.POST.get('admintel')
     if request.method == 'GET':
         return HttpResponse("no files for upload!")
+    # 随机文件名
     randomFileName = getRandomFileName() + '.jpg'
     name = request.POST.get('name')
     info = request.POST.get('info')
@@ -66,7 +81,6 @@ def shopAddOK(request):
     shop_type3_id = request.POST.get('shop_type3')
     shop_type3_obj = shop_type3.objects.get(id=shop_type3_id)
     headimg = request.FILES.get("headimg", None)
-    # print(name, info, addr, tel1, tel2, tel3, lng, lat, shop_type2_id, shop_type3_id)
     # 存入headimg
     fullName = "/home/rcproject/qypt/static/upload/shopimg/logo/"+randomFileName
     destination = open(os.path.join("/home/rcproject/qypt/static/upload/shopimg/logo/", randomFileName),
@@ -87,34 +101,33 @@ def shopAddOK(request):
     currentShopImg = shopimg.objects.get(id=headimgid)
     currentShopImg.shop = newshop
     currentShopImg.save()
-
+    # 压缩图片
     fnCompressPic("", fullName)
 
     query = '''
-    db.collection("qypt_shop").add({
-    	data:{
-    		name:%s,
-    		info:%s,
-    		addr:%s,
-    		tel1:%s,
-    		tel2:%s,
-    		tel3:%s,
-    		location: new db.Geo.Point(%s, %s),
-    		shop_type1:%s,
-    		shop_type2:%s,
-    		shop_type3:%s,
-    		randomFileName:%s,
-    		is_active:1
-    	}
-    })
-    ''' % (name, info, addr, tel1, tel2, tel3, lng, lat, 1, shop_type2_id, shop_type3_id, randomFileName)
-
+        db.collection("qypt_shop").add({
+            data:{
+                name:'%s',
+                info:'%s',
+                addr:'%s',
+                tel1:'%s',
+                tel2:'%s',
+                tel3:'%s',
+                location: new db.Geo.Point(%f, %f),
+                shop_type1:%d,
+                shop_type2:%d,
+                shop_type3:%d,
+                randomFileName:'%s',
+                is_active:1
+            }
+        })
+    ''' % (name, info, addr, tel1, tel2, tel3, float(lng), float(lat), 1, int(shop_type2_id), int(shop_type3_id), randomFileName)
     operation = {
         "env":'qypt-test-p2p0k',
         "query":query
     }
     #获取云数据库的id
-    cloud_id = wxCloundDbAddData(getToken(),operation)
+    cloud_id = wxCloundDbAddData(operation)
     shop.objects.filter(id=shopid).update(cloud_id=cloud_id)
     return redirect('/qypt/closeSavePage')
 
@@ -299,10 +312,9 @@ def getToken():
 
 # 云数据库代码
 # 新增数据
-def wxCloundDbAddData(accessToken,data):
-    # POST https://api.weixin.qq.com/tcb/databaseadd?access_token=ACCESS_TOKEN
+def wxCloundDbAddData(data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
-    url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,accessToken)
+    url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
     # 将response返回的json字符串化，并转换为dict,取出云数据库的id
     # 示例数据{"errcode":0,"errmsg":"ok","id_list":["b3ba940f-4d05-4d34-8d18-7099ad58d06e"]}
@@ -312,9 +324,20 @@ def wxCloundDbAddData(accessToken,data):
 
 
 # 更新数据
-def wxCloundDbUpdateData(accessToken,data):
-    # POST https://api.weixin.qq.com/tcb/databaseupdate?access_token=ACCESS_TOKEN
+def wxCloundDbUpdateData(data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
-    url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,accessToken)
+    url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
     print('更新数据：'+response.text)
+
+
+# 图片上传
+def wxCloundImgUpdate(data):
+    WECHAT_URL = 'https://api.weixin.qq.com/'
+    url = '{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL, getToken())
+    # data = json.dumps(data)
+    response = requests.post(url, data)
+    print(data)
+    print('上传返回url：' + response.text)
+    return (response.text)
+

@@ -48,6 +48,7 @@ class shop(models.Model):
     headimg = models.CharField(max_length=100)
     createtime = models.DateField(auto_now_add=True)
     is_active = models.IntegerField()
+    cloud_id = models.CharField(max_length=30)
 
 
 class shopimg(models.Model):

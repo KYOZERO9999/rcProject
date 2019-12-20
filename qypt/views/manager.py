@@ -39,20 +39,21 @@ def managerAddOK(request):
     query='''
     db.collection("qypt_manager").add({
         data:{
-            admintel:%s,
+            admintel:'%s',
             is_active:1,
-            name:%s,
-            pwd:%s,
-            tel:%s,
+            name:'%s',
+            pwd:'%s',
+            tel:'%s',
         }
     })
     ''' % (admintel,name,pwd,tel)
+    print(query)
     operation = {
         "env":'qypt-test-p2p0k',
         "query":query
     }
     #获取云数据库的id
-    cloud_id = wxCloundDbAddData(getToken(),operation)
+    cloud_id = wxCloundDbAddData(operation)
     manager.objects.filter(id=managerid).update(cloud_id=cloud_id)
     return redirect('/qypt/closeSavePage')
 
@@ -87,7 +88,7 @@ def managerEditOK(request):
                 tel:%s
             }
         })
-        ''' % (cloud_id, name, pwd, tel)
+        ''' % (cloud_id, name, tel)
     else:
         manager.objects.filter(id=id).update(name=name, tel=tel, pwd=pwd)
         query = '''
@@ -105,7 +106,7 @@ def managerEditOK(request):
         "env":'qypt-test-p2p0k',
         "query":query
     }
-    wxCloundDbUpdateData(getToken(), operation)
+    wxCloundDbUpdateData(operation)
     return redirect('/qypt/closeUpdatePage')
 
 
@@ -191,10 +192,10 @@ def getToken():
 
 # 云数据库代码
 # 新增数据
-def wxCloundDbAddData(accessToken,data):
+def wxCloundDbAddData(data):
     # POST https://api.weixin.qq.com/tcb/databaseadd?access_token=ACCESS_TOKEN
     WECHAT_URL = 'https://api.weixin.qq.com/'
-    url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,accessToken)
+    url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
     # 将response返回的json字符串化，并转换为dict,取出云数据库的id
     # 示例数据{"errcode":0,"errmsg":"ok","id_list":["b3ba940f-4d05-4d34-8d18-7099ad58d06e"]}
@@ -203,10 +204,10 @@ def wxCloundDbAddData(accessToken,data):
 
 
 # 更新数据
-def wxCloundDbUpdateData(accessToken,data):
+def wxCloundDbUpdateData(data):
     # POST https://api.weixin.qq.com/tcb/databaseupdate?access_token=ACCESS_TOKEN
     WECHAT_URL = 'https://api.weixin.qq.com/'
-    url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,accessToken)
+    url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
     print('更新数据：'+response.text)
 

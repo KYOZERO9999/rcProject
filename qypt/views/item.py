@@ -18,7 +18,6 @@ def login(request):
         return redirect('/qypt/login')
 
 
-
 def logout(request):
     # 清除当前对应session所有数据
     request.session.clear()

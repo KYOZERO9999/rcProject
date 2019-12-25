@@ -12,17 +12,24 @@ import urllib.parse
 import requests, re, json, ssl,  random, os, time
 
 
-# 添加收银员
+# 获取上传文件URL测试
 def uptest(request):
-    data = {
-        "env":"qypt-test-p2p0k",
-        "path":"/static/upload/shopimg/logo/20191220061148vqiptuzb.jpg"
-    }
-    #测试结果，返回rs
-    rs = wxCloundImgUpdate(data)
-    print('token'+getToken())
-    return HttpResponse(getToken())
-
+    path = "20191220061148vqiptuzb.jpg"
+    rs = getUploadUrl(getToken(), "qypt-test-p2p0k", path)
+    url = json.loads(rs)['url']
+    with open('/home/rcproject/qypt/static/upload/shopimg/logo/20191220061148vqiptuzb.jpg', "rb") as f:
+        file = f.read()
+    data = \
+        {
+            'key':path,
+            'Signature':json.loads(rs)['authorization'],
+            "x-cos-security-token": json.loads(rs)['token'],
+            "x-cos-meta-fileid":json.loads(rs)['cos_file_id'],
+            'file':file
+        }
+    parse_form(url,json.loads(rs)['authorization'],json.loads(rs)['token'],json.loads(rs)['cos_file_id'],url)
+    r = requests.post(url=url, body='multipart/form-data',data=data)
+    return HttpResponse(r)
 
 
 def shopList(request):
@@ -316,6 +323,7 @@ def wxCloundDbAddData(data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
     url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
+    print(data)
     # 将response返回的json字符串化，并转换为dict,取出云数据库的id
     # 示例数据{"errcode":0,"errmsg":"ok","id_list":["b3ba940f-4d05-4d34-8d18-7099ad58d06e"]}
     print(json.loads(response.text))
@@ -331,13 +339,21 @@ def wxCloundDbUpdateData(data):
     print('更新数据：'+response.text)
 
 
-# 图片上传
-def wxCloundImgUpdate(data):
-    WECHAT_URL = 'https://api.weixin.qq.com/'
-    url = '{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL, getToken())
-    # data = json.dumps(data)
-    response = requests.post(url, data)
-    print(data)
-    print('上传返回url：' + response.text)
-    return (response.text)
+# 获取文件上传url
+def getUploadUrl(token, env, path):
+    post_url = "https://api.weixin.qq.com/tcb/uploadfile?access_token=" + token
+    playload = json.dumps({"env":env, "path":path})
+    try:
+        response = requests.post(post_url, data=playload)
+        return response.text
+    except Exception as e:
+        print(e)
 
+
+def parse_form(key,Signature,token,cos_file_id,url):
+    form = {}
+    form["key"] = key
+    form["Signature"] = Signature
+    form["x-cos-security-token"] = token
+    form["x-cos-meta-fileid"] = cos_file_id
+    return (form, url)

@@ -14,22 +14,11 @@ import requests, re, json, ssl,  random, os, time
 
 # 获取上传文件URL测试
 def uptest(request):
-    path = "20191220061148vqiptuzb.jpg"
-    rs = getUploadUrl(getToken(), "qypt-test-p2p0k", path)
-    url = json.loads(rs)['url']
-    with open('/home/rcproject/qypt/static/upload/shopimg/logo/20191220061148vqiptuzb.jpg', "rb") as f:
-        file = f.read()
-    data = \
-        {
-            'key':path,
-            'Signature':json.loads(rs)['authorization'],
-            "x-cos-security-token": json.loads(rs)['token'],
-            "x-cos-meta-fileid":json.loads(rs)['cos_file_id'],
-            'file':file
-        }
-    parse_form(url,json.loads(rs)['authorization'],json.loads(rs)['token'],json.loads(rs)['cos_file_id'],url)
-    r = requests.post(url=url, body='multipart/form-data',data=data)
-    return HttpResponse(r)
+    path = "shopimg/logo/20191220061148vqiptuzb.jpg"
+    rs1 = fnGetUploadUrl(getToken(), "qypt-test-p2p0k", path)
+    rs2 = fnParse_form(json.loads(rs1),path)
+    fnUploadfile(rs2, path)
+    return HttpResponse(rs2)
 
 
 def shopList(request):
@@ -134,7 +123,7 @@ def shopAddOK(request):
         "query":query
     }
     #获取云数据库的id
-    cloud_id = wxCloundDbAddData(operation)
+    cloud_id = fnWxCloundDbAddData(operation)
     shop.objects.filter(id=shopid).update(cloud_id=cloud_id)
     return redirect('/qypt/closeSavePage')
 
@@ -319,7 +308,7 @@ def getToken():
 
 # 云数据库代码
 # 新增数据
-def wxCloundDbAddData(data):
+def fnWxCloundDbAddData(data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
     url='{0}tcb/databaseadd?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
@@ -332,7 +321,7 @@ def wxCloundDbAddData(data):
 
 
 # 更新数据
-def wxCloundDbUpdateData(data):
+def fnWxCloundDbUpdateData(data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
     url='{0}tcb/databaseupdate?access_token={1}'.format(WECHAT_URL,getToken())
     response  = requests.post(url,data=json.dumps(data))
@@ -340,7 +329,7 @@ def wxCloundDbUpdateData(data):
 
 
 # 获取文件上传url
-def getUploadUrl(token, env, path):
+def fnGetUploadUrl(token, env, path):
     post_url = "https://api.weixin.qq.com/tcb/uploadfile?access_token=" + token
     playload = json.dumps({"env":env, "path":path})
     try:
@@ -350,10 +339,25 @@ def getUploadUrl(token, env, path):
         print(e)
 
 
-def parse_form(key,Signature,token,cos_file_id,url):
+# 拼接上传链接
+def fnParse_form(rs, path):
     form = {}
-    form["key"] = key
-    form["Signature"] = Signature
-    form["x-cos-security-token"] = token
-    form["x-cos-meta-fileid"] = cos_file_id
-    return (form, url)
+    form["key"] = path
+    form["Signature"] = rs['authorization']
+    form["x-cos-security-token"] = rs['token']
+    form["x-cos-meta-fileid"] = rs['cos_file_id']
+    return (form, rs['url'])
+
+
+# 文件上传函数
+def fnUploadfile(res, file):
+    form = res[0]
+    upload_url = res[1]
+    with open("/home/rcproject/qypt/static/upload/shopimg/logo/20191220061148vqiptuzb.jpg", "rb") as f:
+        form["file"] = f.read()
+    try:
+        success = requests.post(upload_url, files=form)
+        print(success)
+    except Exception as e:
+        print(e)
+        # logging.error(e)

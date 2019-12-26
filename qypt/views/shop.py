@@ -14,11 +14,20 @@ import requests, re, json, ssl,  random, os, time
 
 # 获取上传文件URL测试
 def uptest(request):
-    path = "shopimg/logo/20191220061148vqiptuzb.jpg"
-    rs1 = fnGetUploadUrl(getToken(), "qypt-test-p2p0k", path)
-    rs2 = fnParse_form(json.loads(rs1),path)
-    fnUploadfile(rs2, path)
-    return HttpResponse(rs2)
+    # 小程序云上传路径
+    cloudPath = "shopimg/logo/20191113064620uyobvgqk.jpg"
+    # 图片本地路径
+    filePath = "/home/rcproject/qypt/static/upload/shopimg/logo/20191113064620uyobvgqk.jpg"
+    #使用token获取上传链接碎片信息
+    rs1 = fnGetUploadUrl("qypt-test-p2p0k", cloudPath)
+    # 保存云存储返回的file_id
+    fileId = json.loads(rs1)['file_id']
+    #使用函数返回的信息，拼接上传URL
+    rs2 = fnParse_form(json.loads(rs1),cloudPath)
+    # 上传文件
+    fnUploadfile(rs2, filePath)
+
+    return HttpResponse(fileId)
 
 
 def shopList(request):
@@ -78,7 +87,8 @@ def shopAddOK(request):
     shop_type3_obj = shop_type3.objects.get(id=shop_type3_id)
     headimg = request.FILES.get("headimg", None)
     # 存入headimg
-    fullName = "/home/rcproject/qypt/static/upload/shopimg/logo/"+randomFileName
+    cloudPath = 'shopimg/logo/"+randomFileName'
+    fullName = filePath = "/home/rcproject/qypt/static/upload/shopimg/logo/"+randomFileName
     destination = open(os.path.join("/home/rcproject/qypt/static/upload/shopimg/logo/", randomFileName),
                        'wb+')  # 打开特定的文件进行二进制的写操作
 
@@ -306,7 +316,7 @@ def getToken():
     return token
 
 
-# 云数据库代码
+# ======云数据库代码======
 # 新增数据
 def fnWxCloundDbAddData(data):
     WECHAT_URL = 'https://api.weixin.qq.com/'
@@ -327,10 +337,10 @@ def fnWxCloundDbUpdateData(data):
     response  = requests.post(url,data=json.dumps(data))
     print('更新数据：'+response.text)
 
-
+#==========文件上传============
 # 获取文件上传url
-def fnGetUploadUrl(token, env, path):
-    post_url = "https://api.weixin.qq.com/tcb/uploadfile?access_token=" + token
+def fnGetUploadUrl(env, path):
+    post_url = "https://api.weixin.qq.com/tcb/uploadfile?access_token=" + getToken()
     playload = json.dumps({"env":env, "path":path})
     try:
         response = requests.post(post_url, data=playload)
@@ -350,14 +360,14 @@ def fnParse_form(rs, path):
 
 
 # 文件上传函数
-def fnUploadfile(res, file):
+def fnUploadfile(res, filePath):
     form = res[0]
     upload_url = res[1]
-    with open("/home/rcproject/qypt/static/upload/shopimg/logo/20191220061148vqiptuzb.jpg", "rb") as f:
+    with open(filePath, "rb") as f:
         form["file"] = f.read()
     try:
-        success = requests.post(upload_url, files=form)
-        print(success)
+        requests.post(upload_url, files=form)
+        return ('upload success')
     except Exception as e:
         print(e)
-        # logging.error(e)
+        return ('upload failed')

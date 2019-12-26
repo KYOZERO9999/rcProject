@@ -27,6 +27,7 @@ def logout(request):
 #     #TODO  session验证
 
 
+
 # ajax验证登陆
 def validateLogin(request):
     # 验证tel
